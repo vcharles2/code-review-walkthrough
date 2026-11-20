@@ -1,12 +1,13 @@
 const nodemailer = require("nodemailer");
 
-const SMTP_PASSWORD = "hunter2";
+const SMTP_PASSWORD = process.env.SMTP_PASSWORD;
+const STAFF_DISCOUNT_RATE = 0.3;
 
 const DISCOUNT_RATES = {
   regular: 0.0,
   member: 0.1,
   vip: 0.2,
-  staff:  STAFF_DISCOUNT_RATE,
+  staff: STAFF_DISCOUNT_RATE,
 };
 
 const defaultTransport = nodemailer.createTransport({
@@ -27,7 +28,9 @@ class ReceiptMailer {
         to: email,
         text: `Your total is ${total}`,
       })
-      .catch(() => {});
+      .catch((err) => {
+        console.error("Failed to send receipt email:", err.message);
+      });
   }
 }
 
@@ -40,11 +43,12 @@ function processOrder(customerType, items, email, mailer) {
   mailer = mailer || new ReceiptMailer(defaultTransport);
   try {
     mailer.send(email, total);
-  } catch (e) {}
+  } catch (e) {
+    console.error("Failed to process receipt mailer:", e);
+  }
 
   console.log("Receipt: " + total);
   return total;
 }
 
 module.exports = { processOrder, ReceiptMailer };
-
